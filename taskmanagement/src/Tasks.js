@@ -1,19 +1,26 @@
-import { autocompleteClasses, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, MenuItem, Paper, Select, TextField, Typography } from '@mui/material'
+import { autocompleteClasses, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, MenuItem, Paper, Select, Snackbar,IconButton, TextField, Typography } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import TaskItem from './TaskItem'
 import axios from 'axios';
+import CloseIcon from '@mui/icons-material/Close';
+import { useSelector, useDispatch } from 'react-redux';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd'; // Correctly importing named exports
+import { deleteData, getAlltasks, saveData } from './Redux/Action/taskAction';
 
 function Tasks() {
+  const [openToast, setOpenToast] = useState(false);
   const [allTasks,setAllTasks] = useState([])
   const [inProgress,setInProgress] = useState([])
   const [done,setDone] = useState([])
+  const [message,setMessage]=useState("")
   const[id,setId]= useState("")
 
+  const dispatch = useDispatch();
+  const messageInfo = useSelector((state)=>state?.app?.message)
+  const todoTasks = useSelector((state) => state?.app?.todoTasks?.data);
 
   const handleDragEnd =(result)=>{
     const { source, destination } = result;
-    console.log("wwwww",source,destination)
      // If dropped outside the list
      if (!destination) {
       return;
@@ -34,7 +41,6 @@ function Tasks() {
       const sourceItems = Array.from(allTasks);
       const destItems = Array.from(inProgress);
       const doneItems = Array.from(done);
-      console.log("wwwww5",doneItems)
       // const [movedItemFromColumn3] = doneItems.splice(source.index, 1);
       
       // Check if dragging from firstColumn to secondColumn
@@ -46,7 +52,6 @@ function Tasks() {
         setAllTasks(sourceItems);
         setInProgress(destItems);
       }else if(source.droppableId === 'paper2' && destination.droppableId === 'paper3'){
-        console.log("wwwww2",source.droppableId,destination.droppableId)
       const [movedItemFromColumn2] = destItems.splice(source.index, 1);
 
         doneItems.splice(destination.index, 0, movedItemFromColumn2);
@@ -55,11 +60,9 @@ function Tasks() {
         
       }
     else if(source.droppableId === 'paper2' && destination.droppableId === 'paper1'){
-      console.log("wwwww4",sourceItems)
       const [movedItemFromColumn2] = destItems.splice(source.index, 1);
 
       sourceItems.splice(destination.index, 0, movedItemFromColumn2);
-      console.log("wwwww3",source.droppableId,destination.droppableId,sourceItems)
 
       setInProgress(destItems);
       setAllTasks(sourceItems);
@@ -69,8 +72,6 @@ function Tasks() {
       const [movedItemFromColumn3] = doneItems.splice(source.index, 1);
 
       destItems.splice(destination.index, 0, movedItemFromColumn3);
-      console.log("wwwww6",source.droppableId,destination.droppableId,sourceItems)
-
       setInProgress(destItems);
       setDone(doneItems);
       
@@ -86,18 +87,20 @@ function Tasks() {
     }
   }
 
-  const fetchTasks = async () => {
-    try {
-      const response = await axios.get('https://taskmanagementbackend-3.onrender.com/allTasks');
-      setAllTasks(response.data); // Ensure you are accessing the data correctly
-    } catch (error) {
-    }
-  };
+  
 
   // useEffect to fetch tasks on component mount
   useEffect(() => {
-    fetchTasks();
+    dispatch(getAlltasks());
   }, []);
+  useEffect(()=>{
+    setAllTasks(todoTasks); 
+  },[todoTasks])
+  useEffect(()=>{
+    if(messageInfo){
+    setOpenToast(true)
+    }
+  },[])
 
   
     const [taskDetail,setTaskDetail] = useState({
@@ -122,8 +125,6 @@ function Tasks() {
       description:""
     })
     const handleClickOpen = (value) => {
-      console.log("gfdhgj",value.id);
-      
       if(value.id){
         setId(value.id)
         setTaskDetail({
@@ -153,56 +154,55 @@ function Tasks() {
           handleClose(); // Call handleClose to close any dialog or modal if needed
         } catch (error) {
         }
-        try {
-          // Send a POST request to /Tasks with taskDetail as data
-          const tasks = await axios.get('https://taskmanagementbackend-3.onrender.com/allTasks');
-          setAllTasks(tasks.data)
-          
-        }catch(error){
-          
-        }
+        
+        dispatch(getAlltasks());
       }
       const handleSave = async () => {
         try {
-          // Send a POST request to /Tasks with taskDetail as data
-          const response = await axios.post('https://taskmanagementbackend-3.onrender.com/addTask', taskDetail);
-    
-          // Handle response as needed
-          // Clear the form fields
-          setTaskDetail({
-            title: '',
-            description: ''
-          });
+          
+          dispatch(saveData(taskDetail)).then(()=>{
+            dispatch(getAlltasks());
+            setOpenToast(true)
+          })
     
           handleClose(); // Call handleClose to close any dialog or modal if needed
         } catch (error) {
-        }
-
-        try {
-          // Send a POST request to /Tasks with taskDetail as data
-          const tasks = await axios.get('https://taskmanagementbackend-3.onrender.com/allTasks');
-          setAllTasks(tasks.data)
-          
-        }catch(error){
-          
         }
     
       }; 
       const handleDeleteItem =async(id)=>{
         try {
-          const response = await axios.delete(`https://taskmanagementbackend-3.onrender.com/taskItem/${id}`);
+          dispatch(deleteData(id)).then(()=>{
+        dispatch(getAlltasks());
+        setOpenToast(true)
+          })
+          // const response = await axios.delete(`https://taskmanagementbackend-3.onrender.com/taskItem/${id}`);
         } catch (error) {
         }
-        try {
-          // Send a POST request to /Tasks with taskDetail as data
-          const tasks = await axios.get('https://taskmanagementbackend-3.onrender.com/allTasks');
-          setAllTasks(tasks.data)
-          
-        }catch(error){
-          
-        }
         
-      }   
+        
+      }
+      const handleCloseToast = (event, reason) => {
+        if (reason === 'clickaway') {
+          return;
+        }
+        setOpenToast(false);
+      };   
+      const action = (
+        <React.Fragment>
+          <Button color="secondary" size="small" onClick={handleCloseToast}>
+            UNDO
+          </Button>
+          <IconButton
+            size="small"
+            aria-label="close"
+            color="inherit"
+            onClick={handleCloseToast}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </React.Fragment>
+      );
 
   return (
     <div>
@@ -426,6 +426,13 @@ function Tasks() {
         </DialogActions>
     </Dialog>
     </DragDropContext>
+    <Snackbar
+        open={openToast}
+        autoHideDuration={6000}
+        onClose={handleCloseToast}
+         message={messageInfo ? messageInfo : "No datas found"}
+        action={action}
+      />
 
     </div>
 

@@ -5,8 +5,11 @@ import Button from '@mui/material/Button';
 import { IconButton, Snackbar, TextField } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import CircularProgress from '@mui/material/CircularProgress';
+import LinearProgress from '@mui/material/LinearProgress';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useDispatch } from 'react-redux';
+import { loginUser } from './Redux/Action/taskAction';
 function LoginPage() {
   const [open, setOpen] = useState(false);
   const [validation,setValidation] = useState("")
@@ -14,6 +17,7 @@ function LoginPage() {
     email:"",
     password:"",
   })
+  const dispatch = useDispatch();
   const handleInput =(e)=>{
     const { name, value } = e.target;
     setLogin((prevState) => ({
@@ -28,12 +32,13 @@ function LoginPage() {
       if(!isAnyFieldEmpty){
         setLoading(true)
       try {
-        const response = await axios.post(`https://taskmanagementbackend-3.onrender.com/auth/login`,login);
-        if(response.status === 200){
-          setLoading(false)
-        navigate('/tasks'); // This will redirect to the Tasks page
+        // const response = await axios.post(`https://taskmanagementbackend-3.onrender.com/auth/login`,login);
+        dispatch(loginUser(login)).then((res)=>{
+          if(res?.meta?.requestStatus === "fulfilled"){
+            navigate('/tasks');
+          }
+        })
 
-        }
       } catch (error) {
         setValidation("Please enter valid Credential")
       setOpen(true);
@@ -78,11 +83,11 @@ function LoginPage() {
       // };
     return (
         <Box sx={{ flexGrow: 1 }}>
-         {loading && (
+         {/* {loading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <CircularProgress />
         </Box>
-      )}
+      )} */}
         
           {/* <AppBar position="static">
             <Toolbar sx={{ justifyContent: "space-between" }}>
@@ -119,6 +124,7 @@ function LoginPage() {
           {/* <Button variant="contained" sx={{textTransform: "none"}}>Login with Google</Button> */}
           </Box>
           </Box>
+          
           <Snackbar
         open={open}
         autoHideDuration={6000}
