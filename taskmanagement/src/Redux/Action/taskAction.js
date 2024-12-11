@@ -1,7 +1,7 @@
 import { createSlice,createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-const url ='https://taskmanagementbackend-3.onrender.com/allTasks';
-const url1 ='https://taskmanagementbackend-3.onrender.com/addTask';
+const url ='https://https://managetodo-backend.onrender.com/allTasks';
+const url1 ='https://managetodo-backend.onrender.com/addTask';
 
 
 export const getAlltasks = createAsyncThunk(
@@ -37,7 +37,7 @@ export const saveData = createAsyncThunk(
         "deleteData",
         async(id,{rejectWithValue})=>{
             try{
-                const response = await axios.delete(`https://taskmanagementbackend-3.onrender.com/taskItem/${id}`) 
+                const response = await axios.delete(`https://https://managetodo-backend.onrender.com/taskItem/${id}`) 
                 return response.data
             }catch(error){
                 return rejectWithValue(error);
@@ -50,7 +50,7 @@ export const saveData = createAsyncThunk(
             "loginUser",
             async(data,{rejectWithValue})=>{
                 try{
-                    const response = await axios.post("https://taskmanagementbackend-3.onrender.com/auth/login",data) 
+                    const response = await axios.post("https://managetodo-backend.onrender.com/auth/login",data) 
                     return response.data
                 }catch(error){
                     return rejectWithValue(error);

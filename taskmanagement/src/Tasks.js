@@ -149,7 +149,7 @@ function Tasks() {
         try {
           
           // Send a Patch request to /Tasks with taskDetail as data
-          const response = await axios.patch(`https://taskmanagementbackend-3.onrender.com/editTask`, taskDetail);
+          const response = await axios.patch(`https://managetodo-backend.onrender.com/editTask`, taskDetail);
     
           handleClose(); // Call handleClose to close any dialog or modal if needed
         } catch (error) {

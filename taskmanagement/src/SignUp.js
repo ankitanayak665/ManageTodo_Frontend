@@ -24,7 +24,7 @@ function SignUp() {
     
     if(!isAnyFieldEmpty){
     try {
-      const response = await axios.post(`https://taskmanagementbackend-3.onrender.com/auth/signUp`,credentials);
+      const response = await axios.post(`https://managetodo-backend.onrender.com/auth/signUp`,credentials);
       
       if(response.status === 201){
         navigate('/login');
